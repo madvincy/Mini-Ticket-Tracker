@@ -22,7 +22,7 @@
             <tr>
               <td class="request-cell"><span class="ticket-id">#{{ ticket.id }}</span><span class="request-title">{{ ticket.title }}</span>@if (ticket.description) { <span class="request-description">{{ ticket.description }}</span> }</td>
               <td><span [class]="'priority ' + ticket.priority"><i aria-hidden="true"></i>{{ ticket.priority }}</span></td>
-              <td><label class="sr-only" [for]="'status-' + ticket.id">Status for {{ ticket.title }}</label><select [class]="'status-select ' + ticket.status" [id]="'status-' + ticket.id" [value]="ticket.status" (change)="setStatus(ticket, $any($event.target).value)">@for (status of statuses; track status) { <option [value]="status">{{ statusLabel(status) }}</option> }</select></td>
+              <td><label class="sr-only" [for]="'status-' + ticket.id">Status for {{ ticket.title }}</label><select [class]="'status-select ' + ticket.status" [id]="'status-' + ticket.id" (change)="setStatus(ticket, $any($event.target).value)">@for (status of statuses; track status) { <option [value]="status" [selected]="ticket.status === status">{{ statusLabel(status) }}</option> }</select></td>
               <td class="date-cell">{{ ticket.created_at | date:'MMM d, y' }}<span>{{ ticket.created_at | date:'h:mm a' }}</span></td>
             </tr>
           }
