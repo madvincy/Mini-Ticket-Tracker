@@ -1,12 +1,16 @@
 <section class="queue-panel" aria-labelledby="queue-title">
   <div class="panel-header">
     <div><p class="eyebrow">WORKSPACE</p><h2 id="queue-title">Requests <span class="count">{{ total }}</span></h2></div>
-    <label class="filter-control"><span>Show</span>
-      <select [value]="filter" (change)="setFilter($any($event.target).value)" aria-label="Filter tickets by status">
-        <option value="">All tickets</option>
-        @for (status of statuses; track status) { <option [value]="status">{{ statusLabel(status) }}</option> }
-      </select>
-    </label>
+  </div>
+
+  <div class="filter-toolbar" aria-label="Search and filter tickets">
+    <label class="search-control"><span class="search-icon" aria-hidden="true">⌕</span><span class="sr-only">Search tickets</span><input [formControl]="searchControl" [value]="search" type="search" placeholder="Search tickets…" autocomplete="off"></label>
+    <label class="filter-control"><span>Status</span><select [value]="filter" (change)="setFilter($any($event.target).value)" aria-label="Filter tickets by status"><option value="">All</option>@for (status of statuses; track status) { <option [value]="status">{{ statusLabel(status) }}</option> }</select></label>
+    <label class="date-control"><span>From</span><input type="date" [value]="from" [max]="to || null" (change)="setDateRange($any($event.target).value, to)" aria-label="Start date filter"></label>
+    <label class="date-control"><span>To</span><input type="date" [value]="to" [min]="from || null" (change)="setDateRange(from, $any($event.target).value)" aria-label="End date filter"></label>
+    @if (search || filter || from || to) {
+      <app-button variant="quiet" ariaLabel="Clear all filters" title="Clear all filters" (click)="clearAllFilters()">Clear</app-button>
+    }
   </div>
 
   @if (loading) {
@@ -16,11 +20,16 @@
   } @else {
     <div class="table-wrap">
       <table>
-        <thead><tr><th scope="col">REQUEST</th><th scope="col">PRIORITY</th><th scope="col">STATUS</th><th scope="col">CREATED</th></tr></thead>
+        <thead><tr>
+          <th scope="col" [attr.aria-sort]="sortBy === 'title' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'"><button class="sort-button" type="button" (click)="toggleSort('title')">REQUEST <span>{{ sortBy === 'title' ? (sortOrder === 'asc' ? '↑' : '↓') : '↕' }}</span></button></th>
+          <th scope="col" [attr.aria-sort]="sortBy === 'priority' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'"><button class="sort-button" type="button" (click)="toggleSort('priority')">PRIORITY <span>{{ sortBy === 'priority' ? (sortOrder === 'asc' ? '↑' : '↓') : '↕' }}</span></button></th>
+          <th scope="col" [attr.aria-sort]="sortBy === 'status' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'"><button class="sort-button" type="button" (click)="toggleSort('status')">STATUS <span>{{ sortBy === 'status' ? (sortOrder === 'asc' ? '↑' : '↓') : '↕' }}</span></button></th>
+          <th scope="col" [attr.aria-sort]="sortBy === 'created_at' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'"><button class="sort-button" type="button" (click)="toggleSort('created_at')">CREATED <span>{{ sortBy === 'created_at' ? (sortOrder === 'asc' ? '↑' : '↓') : '↕' }}</span></button></th>
+        </tr></thead>
         <tbody>
           @for (ticket of tickets; track ticket.id) {
             <tr>
-              <td class="request-cell"><span class="ticket-id">#{{ ticket.id }}</span><span class="request-title">{{ ticket.title }}</span>@if (ticket.description) { <span class="request-description">{{ ticket.description }}</span> }</td>
+              <td class="request-cell"><span class="ticket-id">#{{ ticket.id }}</span><button class="ticket-title-button" type="button" (click)="ticketOpen.emit(ticket.id)">{{ ticket.title }}</button>@if (ticket.description) { <span class="request-description">{{ ticket.description }}</span> }</td>
               <td><span [class]="'priority ' + ticket.priority"><i aria-hidden="true"></i>{{ ticket.priority }}</span></td>
               <td><label class="sr-only" [for]="'status-' + ticket.id">Status for {{ ticket.title }}</label><select [class]="'status-select ' + ticket.status" [id]="'status-' + ticket.id" (change)="setStatus(ticket, $any($event.target).value)">@for (status of statuses; track status) { <option [value]="status" [selected]="ticket.status === status">{{ statusLabel(status) }}</option> }</select></td>
               <td class="date-cell">{{ ticket.created_at | date:'MMM d, y' }}<span>{{ ticket.created_at | date:'h:mm a' }}</span></td>

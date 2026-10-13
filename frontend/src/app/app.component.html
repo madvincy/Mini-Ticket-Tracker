@@ -28,13 +28,30 @@
         [page]="page()"
         [total]="pageMeta().total"
         [totalPages]="pageMeta().totalPages"
+        [search]="search()"
+        [from]="from()"
+        [to]="to()"
+        [sortBy]="sortBy()"
+        [sortOrder]="sortOrder()"
         (filterChange)="changeFilter($event)"
+        (searchChange)="changeSearch($event)"
+        (dateRangeChange)="changeDateRange($event)"
+        (sortChange)="changeSort($event)"
+        (clearFilters)="clearFilters()"
         (pageChange)="movePage($event)"
         (statusChange)="changeStatus($event.id, $event.status)"
+        (ticketOpen)="openTicket($event)"
       />
       <app-ticket-form [saving]="saving()" (submitted)="createTicket($event)" />
     </div>
     <footer class="page-footer"><span>LODWAR SERVICES <i>·</i> SUPPORT OPERATIONS</span><span>MINI TICKET TRACKER <i>·</i> V1.0</span></footer>
   </main>
   <app-toast />
+  <app-ticket-details-dialog
+    [open]="detailsOpen()"
+    [loading]="detailsLoading()"
+    [error]="detailsError()"
+    [ticket]="selectedTicket()"
+    (closed)="closeTicketDetails()"
+  />
 </div>

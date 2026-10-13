@@ -7,12 +7,20 @@ async function create(ticket) {
   return repository.create(ticket);
 }
 
-async function list({ status, page, limit }) {
-  const result = await repository.findPage({ status, limit, offset: (page - 1) * limit });
+async function list({ status, search, from, to, sortBy, sortOrder, page, limit }) {
+  const result = await repository.findPage({
+    status, search, from, to, sortBy, sortOrder, limit, offset: (page - 1) * limit
+  });
   return {
     data: result.rows,
     meta: { page, limit, total: result.total, totalPages: Math.ceil(result.total / limit) }
   };
+}
+
+async function details(id) {
+  const ticket = await repository.findDetails(id);
+  if (!ticket) throw new HttpError(404, 'NOT_FOUND', 'Ticket not found');
+  return ticket;
 }
 
 async function update(id, changes) {
@@ -27,4 +35,4 @@ async function stats() {
   return counts;
 }
 
-module.exports = { create, list, update, stats };
+module.exports = { create, list, details, update, stats };

@@ -6,8 +6,15 @@ const config = require('../src/config');
 async function migrate() {
   const connection = await mysql.createConnection({ ...config.db, multipleStatements: true });
   try {
-    const sql = await fs.readFile(path.join(__dirname, '../db/migrations/001_create_tickets.sql'), 'utf8');
-    await connection.query(sql);
+    const migrationsPath = path.join(__dirname, '../db/migrations');
+    const migrations = (await fs.readdir(migrationsPath))
+      .filter((fileName) => fileName.endsWith('.sql'))
+      .sort();
+    for (const fileName of migrations) {
+      const sql = await fs.readFile(path.join(migrationsPath, fileName), 'utf8');
+      await connection.query(sql);
+      console.log(`Applied ${fileName}`);
+    }
     console.log(`Migration applied to ${config.db.database}`);
   } finally {
     await connection.end();

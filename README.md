@@ -61,10 +61,13 @@ The tests apply the migration, truncate the test table between cases, and close 
 
 - `POST /tickets`: create with required `title`, optional `description` and `priority`.
 - `GET /tickets?status=&page=&limit=`: newest-first filtered, paginated list with `meta`.
+- `GET /tickets/:id`: ticket details and a chronological status history.
 - `PATCH /tickets/:id`: change one or both of `status` and `priority`.
 - `GET /tickets/stats`: counts for all three statuses, including zeroes.
 
 Success responses use `{ "data": ... }`; list responses also include `meta`. Errors use `{ "error": { "code", "message", "details?" } }`. Invalid input is a 400; a well-formed unknown ticket id is a 404.
+
+The ticket list also accepts `search` (matches title and description), inclusive `from` and `to` dates (`YYYY-MM-DD`), `sortBy` (`created_at`, `title`, `priority`, or `status`), and `sortOrder` (`asc` or `desc`). The detail timeline records creation and each actual status transition in `ticket_status_history`; priority-only updates do not add status events. Existing tickets receive a `baseline` event at migration time so the UI is clear about where recorded history begins; earlier transitions are not fabricated.
 
 ## Decisions & Tradeoffs
 
@@ -73,6 +76,7 @@ Success responses use `{ "data": ... }`; list responses also include `meta`. Err
 - Omitted status and priority default to `open` and `medium`; the database migration owns those defaults.
 - The `(status, created_at, id)` index supports filtered newest-first listing and grouped counts. The id tie-breaker makes order stable when timestamps match.
 - SQL stays in the repository and all request values are parameterized. PATCH columns come from a fixed whitelist, never arbitrary request keys.
+- Status history is append-only and inserted in the same transaction as ticket creation/status updates, so timeline entries cannot drift from the stored status.
 - Tests use a separate schema selected by `NODE_ENV=test` and share one database connection pool, so Jest runs in band.
 - The UI reloads the list and stats after successful changes for correctness and simplicity. Authentication, deletion, title editing, real-time updates, UI component tests and deployment pipelines are intentionally out of scope.
 - Compose publishes MySQL on the host for local tooling and uses development credentials by default. Change them in `.env` before exposing this stack beyond a local machine.
