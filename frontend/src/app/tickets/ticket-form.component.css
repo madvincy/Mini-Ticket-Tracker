@@ -1,0 +1,138 @@
+:host { display: block; }
+.form-panel {
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--paper);
+}
+
+.form-heading {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding-bottom: 17px;
+    border-bottom: 1px solid var(--line);
+}
+
+.eyebrow {
+    margin: 0 0 5px;
+    color: #76827a;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .13em;
+}
+
+.form-heading h2 {
+    margin: 0;
+    font: 700 15px 'Manrope', sans-serif;
+}
+
+.form-icon {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #cddfd2;
+    border-radius: 5px;
+    color: var(--brand-navy);
+    background: var(--brand-blue-soft);
+    font-size: 19px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    padding-top: 17px;
+}
+
+label {
+    margin: 0 0 7px;
+    color: #49574e;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.required {
+    color: #bc614d;
+}
+
+.optional {
+    float: right;
+    color: #97a199;
+    font-size: 8px;
+    letter-spacing: .08em;
+}
+
+input,
+textarea,
+.priority-select {
+    width: 100%;
+    margin-bottom: 16px;
+    padding: 9px 10px;
+    border: 1px solid #dce3dc;
+    border-radius: 4px;
+    outline: none;
+    background: white;
+    color: var(--ink);
+    font: inherit;
+    font-size: 11px;
+}
+
+input:focus,
+textarea:focus,
+.priority-select:focus {
+    border-color: var(--brand-navy);
+    box-shadow: 0 0 0 2px var(--brand-blue);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #a1aaa3;
+}
+
+textarea {
+    min-height: 86px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+input.invalid {
+    border-color: #ce776b;
+}
+
+.field-error {
+    margin: -11px 0 13px;
+    color: #a8463a;
+    font-size: 9px;
+}
+
+.priority-select {
+    margin-bottom: 19px;
+}
+
+.form-footnote {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 13px 0 0;
+    color: #89948c;
+    font-size: 9px;
+}
+
+.form-footnote span {
+    color: #bd644f;
+}
+
+.form-footnote i {
+    width: 3px;
+    height: 3px;
+    margin: 0 2px;
+    border-radius: 50%;
+    background: #aab3ac;
+}
+
+@media (max-width: 850px) {
+    :host {
+        order: -1;
+    }
+}

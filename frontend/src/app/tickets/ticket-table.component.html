@@ -1,0 +1,42 @@
+<section class="queue-panel" aria-labelledby="queue-title">
+  <div class="panel-header">
+    <div><p class="eyebrow">WORKSPACE</p><h2 id="queue-title">Requests <span class="count">{{ total }}</span></h2></div>
+    <label class="filter-control"><span>Show</span>
+      <select [value]="filter" (change)="setFilter($any($event.target).value)" aria-label="Filter tickets by status">
+        <option value="">All tickets</option>
+        @for (status of statuses; track status) { <option [value]="status">{{ statusLabel(status) }}</option> }
+      </select>
+    </label>
+  </div>
+
+  @if (loading) {
+    <div class="state-message" role="status"><span class="spinner"></span><span>Loading requests</span></div>
+  } @else if (tickets.length === 0) {
+    <div class="state-message empty-state"><span class="empty-symbol" aria-hidden="true">—</span><strong>{{ filter ? 'No matching tickets' : 'No tickets yet' }}</strong><span>{{ filter ? 'Try another status filter.' : 'New requests will appear here.' }}</span></div>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">REQUEST</th><th scope="col">PRIORITY</th><th scope="col">STATUS</th><th scope="col">CREATED</th></tr></thead>
+        <tbody>
+          @for (ticket of tickets; track ticket.id) {
+            <tr>
+              <td class="request-cell"><span class="ticket-id">#{{ ticket.id }}</span><span class="request-title">{{ ticket.title }}</span>@if (ticket.description) { <span class="request-description">{{ ticket.description }}</span> }</td>
+              <td><span [class]="'priority ' + ticket.priority"><i aria-hidden="true"></i>{{ ticket.priority }}</span></td>
+              <td><label class="sr-only" [for]="'status-' + ticket.id">Status for {{ ticket.title }}</label><select [class]="'status-select ' + ticket.status" [id]="'status-' + ticket.id" [value]="ticket.status" (change)="setStatus(ticket, $any($event.target).value)">@for (status of statuses; track status) { <option [value]="status">{{ statusLabel(status) }}</option> }</select></td>
+              <td class="date-cell">{{ ticket.created_at | date:'MMM d, y' }}<span>{{ ticket.created_at | date:'h:mm a' }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <footer class="queue-footer">
+    <span>Showing {{ firstItem }}–{{ lastItem }} of {{ total }}</span>
+    <nav class="pagination" aria-label="Ticket pages">
+      <app-button variant="icon" [disabled]="page <= 1 || loading" ariaLabel="Previous page" title="Previous page" (click)="pageChange.emit(-1)">←</app-button>
+      <span>{{ page }} <i>/</i> {{ totalPages || 1 }}</span>
+      <app-button variant="icon" [disabled]="page >= totalPages || loading" ariaLabel="Next page" title="Next page" (click)="pageChange.emit(1)">→</app-button>
+    </nav>
+  </footer>
+</section>

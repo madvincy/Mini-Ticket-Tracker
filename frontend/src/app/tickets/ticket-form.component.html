@@ -1,0 +1,25 @@
+<aside class="form-panel" aria-labelledby="new-request-title">
+  <div class="form-heading">
+    <span class="form-icon" aria-hidden="true">+</span>
+    <div><p class="eyebrow">INCOMING</p><h2 id="new-request-title">New request</h2></div>
+  </div>
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <label for="ticket-title">Subject <span class="required">*</span></label>
+    <input id="ticket-title" formControlName="title" maxlength="255" required placeholder="What needs attention?" [class.invalid]="form.controls.title.touched && form.controls.title.invalid" [attr.aria-invalid]="form.controls.title.touched && form.controls.title.invalid ? 'true' : null" [attr.aria-describedby]="form.controls.title.touched && form.controls.title.invalid ? 'ticket-title-error' : null">
+    @if (form.controls.title.touched && form.controls.title.hasError('required')) { <span id="ticket-title-error" class="field-error">A subject is required.</span> }
+    @if (form.controls.title.touched && form.controls.title.hasError('maxlength')) { <span id="ticket-title-error" class="field-error">Keep the subject under 255 characters.</span> }
+
+    <label for="ticket-description">Details <span class="optional">OPTIONAL</span></label>
+    <textarea id="ticket-description" formControlName="description" maxlength="5000" rows="4" placeholder="Add useful context for the team..."></textarea>
+
+    <label for="ticket-priority">Priority</label>
+    <select id="ticket-priority" class="priority-select" formControlName="priority">
+      <option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option>
+    </select>
+
+    <app-button type="submit" variant="primary" [disabled]="saving">
+      <span>{{ saving ? 'Creating request…' : 'Create request' }}</span><span aria-hidden="true">↗</span>
+    </app-button>
+  </form>
+  <p class="form-footnote"><span>*</span> Required field <i></i> Starts as open</p>
+</aside>

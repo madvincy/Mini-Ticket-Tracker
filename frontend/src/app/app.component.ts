@@ -1,20 +1,33 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { finalize, forkJoin } from 'rxjs';
 import { Ticket, TicketPage, TicketStats, TicketStatus } from './core/ticket.model';
 import { TicketsApiService } from './core/tickets-api.service';
+import { TicketDraft, TicketFormComponent } from './tickets/ticket-form.component';
+import { TicketTableComponent } from './tickets/ticket-table.component';
+import { TicketStatsComponent } from './tickets/ticket-stats.component';
+import { AppButtonComponent } from './shared/button/app-button.component';
+import { ToastComponent } from './shared/toast/toast.component';
+import { ToastService } from './shared/toast/toast.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    TicketFormComponent,
+    TicketTableComponent,
+    TicketStatsComponent,
+    AppButtonComponent,
+    ToastComponent
+  ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit {
   private readonly api = inject(TicketsApiService);
-  private readonly formBuilder = inject(FormBuilder);
+  private readonly toast = inject(ToastService);
+  @ViewChild(TicketFormComponent) private ticketForm?: TicketFormComponent;
   readonly tickets = signal<Ticket[]>([]);
   readonly stats = signal<TicketStats>({ open: 0, in_progress: 0, closed: 0 });
   readonly pageMeta = signal<TicketPage['meta']>({ page: 1, limit: 10, total: 0, totalPages: 0 });
@@ -23,13 +36,6 @@ export class AppComponent implements OnInit {
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly error = signal('');
-  readonly statuses: TicketStatus[] = ['open', 'in_progress', 'closed'];
-  readonly form = this.formBuilder.nonNullable.group({
-    title: ['', [Validators.required, Validators.maxLength(255)]],
-    description: ['', Validators.maxLength(5000)],
-    priority: ['medium' as 'low' | 'medium' | 'high']
-  });
-
   ngOnInit(): void { this.reload(); }
 
   reload(): void {
@@ -48,30 +54,32 @@ export class AppComponent implements OnInit {
     });
   }
 
-  createTicket(): void {
-    this.form.markAllAsTouched();
-    if (this.form.invalid || this.saving()) return;
+  createTicket(draft: TicketDraft): void {
+    if (this.saving()) return;
     this.saving.set(true);
     this.error.set('');
-    this.api.create({ ...this.form.getRawValue(), title: this.form.controls.title.value.trim() })
+    this.api.create(draft)
       .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
         next: () => {
-          this.form.reset({ title: '', description: '', priority: 'medium' });
+          this.ticketForm?.reset();
           this.page.set(1);
+          this.toast.show('Request created successfully');
           this.reload();
         },
         error: (error: unknown) => this.error.set(this.api.errorMessage(error))
       });
   }
 
-  changeStatus(ticket: Ticket, status: TicketStatus): void {
+  changeStatus(id: number, status: TicketStatus): void {
+    const ticket = this.tickets().find((item) => item.id === id);
+    if (!ticket) return;
     const previous = ticket.status;
-    this.tickets.update((items) => items.map((item) => item.id === ticket.id ? { ...item, status } : item));
-    this.api.update(ticket.id, { status }).subscribe({
+    this.tickets.update((items) => items.map((item) => item.id === id ? { ...item, status } : item));
+    this.api.update(id, { status }).subscribe({
       next: () => this.reload(),
       error: (error: unknown) => {
-        this.tickets.update((items) => items.map((item) => item.id === ticket.id ? { ...item, status: previous } : item));
+        this.tickets.update((items) => items.map((item) => item.id === id ? { ...item, status: previous } : item));
         this.error.set(this.api.errorMessage(error));
       }
     });
@@ -90,7 +98,4 @@ export class AppComponent implements OnInit {
     this.reload();
   }
 
-  statusLabel(status: TicketStatus): string {
-    return status === 'in_progress' ? 'In progress' : status[0].toUpperCase() + status.slice(1);
-  }
 }
