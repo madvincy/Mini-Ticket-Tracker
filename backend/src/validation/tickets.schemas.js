@@ -8,6 +8,10 @@ const numericQuery = (fallback) => z.preprocess(
   (value) => value === undefined ? fallback : typeof value === 'string' && /^\d+$/.test(value) ? Number(value) : value,
   z.number().int().safe()
 );
+const dateQuery = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+});
 
 const createTicketSchema = z.object({
   title: z.string().trim().min(1).max(255),
@@ -26,8 +30,16 @@ const patchTicketSchema = z.object({
 const listTicketsSchema = z.object({
   status: z.enum(statuses).optional(),
   page: numericQuery(1).refine((value) => value >= 1),
-  limit: numericQuery(10).refine((value) => value >= 1 && value <= 100)
-}).strict();
+  limit: numericQuery(10).refine((value) => value >= 1 && value <= 100),
+  search: z.string().trim().max(200).optional(),
+  from: dateQuery.optional(),
+  to: dateQuery.optional(),
+  sortBy: z.enum(['created_at', 'title', 'priority', 'status']).default('created_at'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc')
+}).strict().refine((value) => !value.from || !value.to || value.from <= value.to, {
+  path: ['to'],
+  message: 'End date must be on or after the start date'
+});
 
 const ticketIdSchema = z.object({
   id: z.string().regex(/^[1-9]\d*$/).refine((value) => Number.isSafeInteger(Number(value)))

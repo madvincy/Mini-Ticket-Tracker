@@ -3,7 +3,7 @@ const openapi = {
   info: {
     title: 'Lodwar Services Mini Ticket Tracker API',
     version: '1.0.0',
-    description: 'Ticket creation, listing, status and priority updates, and status counts.'
+    description: 'Ticket creation, searchable and sortable listing, status history, updates, and status counts.'
   },
   servers: [{ url: '/', description: 'Current server' }],
   tags: [
@@ -43,11 +43,16 @@ const openapi = {
       get: {
         tags: ['Tickets'],
         summary: 'List tickets',
-        description: 'Tickets are ordered newest first; id breaks timestamp ties.',
+        description: 'Search title and description, filter by inclusive creation-date range and status, and sort by an allow-listed field.',
         parameters: [
           { name: 'status', in: 'query', required: false, schema: { $ref: '#/components/schemas/TicketStatus' } },
           { name: 'page', in: 'query', required: false, schema: { type: 'integer', minimum: 1, default: 1 } },
-          { name: 'limit', in: 'query', required: false, schema: { type: 'integer', minimum: 1, maximum: 100, default: 10 } }
+          { name: 'limit', in: 'query', required: false, schema: { type: 'integer', minimum: 1, maximum: 100, default: 10 } },
+          { name: 'search', in: 'query', required: false, schema: { type: 'string', maxLength: 200 } },
+          { name: 'from', in: 'query', required: false, description: 'Inclusive start date (YYYY-MM-DD)', schema: { type: 'string', format: 'date' } },
+          { name: 'to', in: 'query', required: false, description: 'Inclusive end date (YYYY-MM-DD)', schema: { type: 'string', format: 'date' } },
+          { name: 'sortBy', in: 'query', required: false, schema: { type: 'string', enum: ['created_at', 'title', 'priority', 'status'], default: 'created_at' } },
+          { name: 'sortOrder', in: 'query', required: false, schema: { type: 'string', enum: ['asc', 'desc'], default: 'desc' } }
         ],
         responses: {
           200: {
@@ -71,6 +76,19 @@ const openapi = {
       }
     },
     '/tickets/{id}': {
+      get: {
+        tags: ['Tickets'],
+        summary: 'Get ticket details and status history',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', pattern: '^[1-9]\\d*$' } }],
+        responses: {
+          200: {
+            description: 'Ticket details with chronological status events',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/TicketDetailsResponse' } } }
+          },
+          400: { $ref: '#/components/responses/ValidationError' },
+          404: { $ref: '#/components/responses/NotFound' }
+        }
+      },
       patch: {
         tags: ['Tickets'],
         summary: 'Update ticket status and/or priority',
@@ -141,6 +159,37 @@ const openapi = {
         type: 'object',
         required: ['data'],
         properties: { data: { $ref: '#/components/schemas/Ticket' } }
+      },
+      TicketDetailsResponse: {
+        type: 'object',
+        required: ['data'],
+        properties: {
+          data: {
+            allOf: [
+              { $ref: '#/components/schemas/Ticket' },
+              {
+                type: 'object',
+                required: ['history'],
+                properties: {
+                  history: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      required: ['id', 'event_type', 'from_status', 'to_status', 'changed_at'],
+                      properties: {
+                        id: { type: 'integer', format: 'int64' },
+                        event_type: { type: 'string', enum: ['created', 'status_changed', 'baseline'] },
+                        from_status: { allOf: [{ $ref: '#/components/schemas/TicketStatus' }], nullable: true },
+                        to_status: { $ref: '#/components/schemas/TicketStatus' },
+                        changed_at: { type: 'string', format: 'date-time' }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
       },
       TicketListResponse: {
         type: 'object',

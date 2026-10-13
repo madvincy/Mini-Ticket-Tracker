@@ -18,7 +18,7 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-  await pool.execute('TRUNCATE TABLE tickets');
+  await pool.execute('DELETE FROM tickets');
 });
 
 afterAll(async () => {
@@ -32,6 +32,11 @@ test('creates a ticket with database defaults', async () => {
   });
   expect(response.body.data.id).toBeTruthy();
   expect(response.body.data.created_at).toBeTruthy();
+  const detail = await request(app).get(`/tickets/${response.body.data.id}`).expect(200);
+  expect(detail.body.data.history).toHaveLength(1);
+  expect(detail.body.data.history[0]).toMatchObject({
+    event_type: 'created', from_status: null, to_status: 'open'
+  });
 });
 
 test('rejects a missing title with the documented error shape', async () => {
@@ -52,10 +57,25 @@ test('filters and paginates tickets', async () => {
   expect(response.body.meta).toMatchObject({ page: 1, limit: 1, total: 2, totalPages: 2 });
 });
 
+test('searches, filters by dates, and sorts ticket results', async () => {
+  await repository.create({ title: 'Printer jam west wing', description: 'Paper feed issue', status: 'open' });
+  await repository.create({ title: 'Laptop setup', description: 'Printer access needed', status: 'closed' });
+  const response = await request(app)
+    .get('/tickets?search=printer&from=2020-01-01&to=2035-12-31&sortBy=title&sortOrder=asc')
+    .expect(200);
+  expect(response.body.data).toHaveLength(2);
+  expect(response.body.data.map((ticket) => ticket.title)).toEqual(['Laptop setup', 'Printer jam west wing']);
+});
+
 test('updates status and reports invalid and unknown tickets', async () => {
   const created = await repository.create({ title: 'Keyboard issue' });
   const updated = await request(app).patch(`/tickets/${created.id}`).send({ status: 'in_progress' }).expect(200);
   expect(updated.body.data.status).toBe('in_progress');
+  const details = await request(app).get(`/tickets/${created.id}`).expect(200);
+  expect(details.body.data.history.map((event) => [event.from_status, event.to_status])).toEqual([
+    [null, 'open'], ['open', 'in_progress']
+  ]);
+  expect(details.body.data.history.map((event) => event.event_type)).toEqual(['created', 'status_changed']);
   await request(app).patch('/tickets/999999').send({ status: 'closed' }).expect(404);
   await request(app).patch(`/tickets/${created.id}`).send({ status: 'invalid' }).expect(400);
 });
