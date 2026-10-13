@@ -11,7 +11,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Open <http://localhost:4200>. The API health endpoint is at <http://localhost:3000/health>. Compose creates the development schema `lodwar_tickets` and the isolated test schema `lodwar_tickets_test`; the API applies the migration when it starts.
+Open <http://localhost:4200>. Interactive API documentation is at <http://localhost:3000/api-docs>; the OpenAPI JSON document is at <http://localhost:3000/api-docs.json>. The API health endpoint is at <http://localhost:3000/health>. Compose creates the development schema `lodwar_tickets` and the isolated test schema `lodwar_tickets_test`; the API applies the migration when it starts.
 
 To stop the services, run `docker compose down`. To also remove the local MySQL data volume, run `docker compose down -v`.
 
@@ -35,6 +35,8 @@ npm start
 ```
 
 The Angular development server runs at <http://localhost:4200> and proxies `/api` to the API at port 3000.
+
+The interactive API documentation is available at <http://localhost:3000/api-docs> and the OpenAPI JSON document at <http://localhost:3000/api-docs.json>.
 
 ## Tests
 
