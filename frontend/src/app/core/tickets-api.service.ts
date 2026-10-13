@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
-import { Ticket, TicketPage, TicketPriority, TicketStats, TicketStatus } from './ticket.model';
+import { Ticket, TicketDetails, TicketPage, TicketPriority, TicketQuery, TicketStats, TicketStatus } from './ticket.model';
 
 interface Envelope<T> { data: T; }
 interface TicketDraft { title: string; description: string; priority: TicketPriority; }
@@ -12,10 +12,18 @@ export class TicketsApiService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = '/api/tickets';
 
-  list(query: { status?: TicketStatus; page: number; limit: number }): Observable<TicketPage> {
+  list(query: TicketQuery): Observable<TicketPage> {
     let params = new HttpParams().set('page', query.page).set('limit', query.limit);
     if (query.status) params = params.set('status', query.status);
+    if (query.search) params = params.set('search', query.search);
+    if (query.from) params = params.set('from', query.from);
+    if (query.to) params = params.set('to', query.to);
+    params = params.set('sortBy', query.sortBy).set('sortOrder', query.sortOrder);
     return this.http.get<TicketPage>(this.baseUrl, { params });
+  }
+
+  details(id: number): Observable<TicketDetails> {
+    return this.http.get<Envelope<TicketDetails>>(`${this.baseUrl}/${id}`).pipe(map((response) => response.data));
   }
 
   stats(): Observable<TicketStats> {

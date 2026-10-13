@@ -40,6 +40,35 @@
     font: 700 17px 'Manrope', sans-serif;
 }
 
+    .filter-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: end;
+        gap: 10px;
+        padding: 13px 18px;
+        border-bottom: 1px solid var(--line);
+        background: #fbfdff;
+    }
+
+    .search-control,
+    .date-control {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 34px;
+        padding: 0 9px;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: #fff;
+    }
+
+    .search-control { flex: 1 1 190px; color: #74899a; }
+    .search-icon { font-size: 18px; line-height: 1; }
+    .search-control input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 11px; }
+    .search-control:focus-within, .date-control:focus-within, .filter-control:focus-within { border-color: #8eafc5; box-shadow: 0 0 0 2px var(--brand-blue); }
+    .date-control { gap: 6px; color: #708393; font-size: 9px; }
+    .date-control input { width: 119px; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--brand-navy); font-size: 10px; }
+
 .count {
     margin-left: 5px;
     color: #8d9891;
@@ -64,6 +93,11 @@
     color: var(--ink);
     font-size: 11px;
 }
+
+.sort-button { display: inline-flex; align-items: center; gap: 5px; padding: 5px 0; border: 0; background: transparent; color: #6a8192; font: inherit; font-size: 8px; font-weight: 700; letter-spacing: .1em; cursor: pointer; }
+.sort-button span { color: #a0b1be; font-size: 11px; }
+.sort-button:hover, .sort-button:focus-visible { color: var(--brand-orange); }
+.sort-button:focus-visible { outline: 2px solid #a8c6dc; outline-offset: 3px; }
 
 .table-wrap {
     overflow-x: auto;
@@ -120,6 +154,10 @@ tbody tr {
     font-size: 12px;
     font-weight: 600;
 }
+
+.ticket-title-button { max-width: min(40vw, 360px); padding: 0; border: 0; background: none; color: var(--brand-navy); font: inherit; font-size: 12px; font-weight: 700; text-align: left; text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 3px; cursor: pointer; }
+.ticket-title-button:hover, .ticket-title-button:focus-visible { color: var(--brand-orange); text-decoration-color: currentColor; }
+.ticket-title-button:focus-visible { outline: 2px solid #a8c6dc; outline-offset: 3px; }
 
 .request-description {
     display: block;
@@ -287,6 +325,12 @@ tbody tr {
     .panel-header {
         padding: 14px 12px;
     }
+        .filter-toolbar { align-items: stretch; gap: 7px; padding: 11px 12px; }
+        .search-control { flex-basis: 100%; }
+        .date-control { flex: 1 1 120px; justify-content: space-between; }
+        .date-control input { width: min(31vw, 125px); }
+        .filter-control { min-height: 34px; justify-content: space-between; padding: 0 8px; border: 1px solid var(--line); border-radius: 4px; background: #fff; }
+        .filter-control select { min-width: 80px; padding: 6px 16px 6px 6px; border: 0; }
 
     .filter-control {
         gap: 5px;

@@ -1,0 +1,51 @@
+<dialog #dialog class="ticket-dialog" aria-labelledby="ticket-dialog-title" (click)="onBackdropClick($event)" (close)="onNativeClose()">
+  <div class="dialog-shell">
+    <header class="dialog-header">
+      <div><p class="dialog-kicker">REQUEST DETAILS</p><h2 id="ticket-dialog-title">{{ ticket?.title || 'Ticket details' }}</h2></div>
+      <app-button variant="icon" ariaLabel="Close ticket details" title="Close" (click)="close()">×</app-button>
+    </header>
+
+    @if (loading) {
+      <div class="dialog-state" role="status"><span class="spinner"></span>Loading ticket details…</div>
+    } @else if (error) {
+      <div class="dialog-state dialog-error" role="alert">{{ error }}</div>
+    } @else if (ticket) {
+      <div class="details-grid">
+        <div class="detail-item"><span>Ticket</span><strong>#{{ ticket.id }}</strong></div>
+        <div class="detail-item"><span>Current status</span><strong [class]="'status-badge ' + ticket.status">{{ statusLabel(ticket.status) }}</strong></div>
+        <div class="detail-item"><span>Priority</span><strong class="priority-value">{{ ticket.priority }}</strong></div>
+        <div class="detail-item"><span>Created</span><strong>{{ ticket.created_at | date:'MMM d, y · h:mm a' }}</strong></div>
+      </div>
+
+      <section class="description-block" aria-labelledby="description-title">
+        <h3 id="description-title">Description</h3>
+        <p>{{ ticket.description || 'No additional details were provided.' }}</p>
+      </section>
+
+      <section class="timeline-section" aria-labelledby="timeline-title">
+        <div class="timeline-heading"><div><p class="dialog-kicker">AUDIT TRAIL</p><h3 id="timeline-title">Status history</h3></div><span>{{ ticket.history.length }} {{ ticket.history.length === 1 ? 'event' : 'events' }}</span></div>
+        @if (ticket.history.length) {
+          <ol class="timeline">
+            @for (event of ticket.history; track event.id; let last = $last) {
+              <li [class.last-event]="last">
+                <span class="timeline-marker" aria-hidden="true"></span>
+                <div class="timeline-copy">
+                  @if (event.event_type === 'baseline') {
+                    <strong>Tracking began · {{ statusLabel(event.to_status) }}</strong>
+                    <span>Earlier status changes are not available.</span>
+                  } @else {
+                    <strong>{{ event.from_status ? statusLabel(event.from_status) + ' → ' : '' }}{{ statusLabel(event.to_status) }}</strong>
+                    <span>{{ event.event_type === 'created' ? 'Ticket created' : 'Status changed' }}</span>
+                  }
+                </div>
+                <time [attr.datetime]="event.changed_at">{{ event.changed_at | date:'MMM d, y · h:mm a' }}</time>
+              </li>
+            }
+          </ol>
+        } @else {
+          <p class="no-history">No status history recorded.</p>
+        }
+      </section>
+    }
+  </div>
+</dialog>
